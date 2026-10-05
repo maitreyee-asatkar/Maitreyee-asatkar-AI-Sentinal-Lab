@@ -41,6 +41,10 @@ jobs:
         env:
           MODEL_NAME: ${{ inputs.model || 'gpt2' }}
         run: python -m interpretability.nnsight_activation --model "$MODEL_NAME" --layer 10 --output artifacts/nnsight_activation.json
+      - name: Run causal head-ablation experiment
+        env:
+          MODEL_NAME: ${{ inputs.model || 'gpt2' }}
+        run: python -m interpretability.head_ablation --model "$MODEL_NAME" --layer 10 --head 6 --output artifacts/head_ablation.json
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
@@ -49,3 +53,4 @@ jobs:
             artifacts/residual_probe.json
             artifacts/attention_heads.json
             artifacts/nnsight_activation.json
+            artifacts/head_ablation.json
