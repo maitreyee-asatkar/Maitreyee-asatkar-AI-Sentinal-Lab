@@ -18,11 +18,12 @@ def rank_attention_heads(
     output: str = "artifacts/attention_heads.json",
 ):
     try:
-        from transformer_lens import HookedTransformer
+        from transformer_lens.model_bridge import TransformerBridge
     except ImportError as exc:
         raise RuntimeError("Install requirements-interpretability.txt first.") from exc
 
-    model = HookedTransformer.from_pretrained(model_name)
+    model = TransformerBridge.boot_transformers(model_name)
+    model.enable_compatibility_mode()
     selected_layers = layers or list(range(model.cfg.n_layers))
 
     _, clean_cache = model.run_with_cache(clean_prompt)
