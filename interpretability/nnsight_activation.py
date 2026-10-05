@@ -19,23 +19,38 @@ def capture(model: TransformersModel, prompt: str, layer: int) -> torch.Tensor:
 
 
 def summarize(clean: torch.Tensor, adversarial: torch.Tensor) -> dict:
-    if clean.shape != adversarial.shape:
-        raise ValueError(
-            f"Activation shapes differ: clean={list(clean.shape)}, "
-            f"adversarial={list(adversarial.shape)}"
-        )
+    clean_shape = list(clean.shape)
+    adversarial_shape = list(adversarial.shape)
 
-    delta = adversarial - clean
-    clean_flat = clean.reshape(-1)
-    adversarial_flat = adversarial.reshape(-1)
+    if clean.ndim >= 3 and adversarial.ndim >= 3:
+        # Prompts can tokenize to different sequence lengths. Mean-pool the
+        # sequence dimension so the comparison is length-invariant.
+        clean_compare = clean.mean(dim=-2)
+        adversarial_compare = adversarial.mean(dim=-2)
+        pooling = "mean over sequence positions"
+    else:
+        if clean.shape != adversarial.shape:
+            raise ValueError(
+                f"Activation shapes differ: clean={clean_shape}, "
+                f"adversarial={adversarial_shape}"
+            )
+        clean_compare = clean
+        adversarial_compare = adversarial
+        pooling = "none"
+
+    delta = adversarial_compare - clean_compare
+    clean_flat = clean_compare.reshape(-1)
+    adversarial_flat = adversarial_compare.reshape(-1)
 
     return {
-        "clean_shape": list(clean.shape),
-        "adversarial_shape": list(adversarial.shape),
-        "clean_mean": float(clean.mean().item()),
-        "clean_std": float(clean.std().item()),
-        "adversarial_mean": float(adversarial.mean().item()),
-        "adversarial_std": float(adversarial.std().item()),
+        "clean_shape": clean_shape,
+        "adversarial_shape": adversarial_shape,
+        "comparison_shape": list(clean_compare.shape),
+        "pooling": pooling,
+        "clean_mean": float(clean_compare.mean().item()),
+        "clean_std": float(clean_compare.std().item()),
+        "adversarial_mean": float(adversarial_compare.mean().item()),
+        "adversarial_std": float(adversarial_compare.std().item()),
         "mean_abs_delta": float(delta.abs().mean().item()),
         "l2_delta": float(torch.linalg.vector_norm(delta).item()),
         "cosine_similarity": float(
