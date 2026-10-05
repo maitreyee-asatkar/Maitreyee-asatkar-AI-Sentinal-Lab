@@ -1,6 +1,12 @@
 name: Interpretability Research
 
 on:
+  push:
+    paths:
+      - 'interpretability/**'
+      - 'requirements-model.txt'
+      - 'requirements-interpretability.txt'
+      - '.github/workflows/research.yml'
   workflow_dispatch:
     inputs:
       model:
@@ -11,7 +17,7 @@ on:
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,7 +30,9 @@ jobs:
           pip install -r requirements-model.txt
           pip install -r requirements-interpretability.txt
       - name: Run residual experiment
-        run: python -m interpretability.run_research --model "${{ inputs.model }}" --output artifacts/residual_probe.json
+        env:
+          MODEL_NAME: ${{ inputs.model || 'gpt2' }}
+        run: python -m interpretability.run_research --model "$MODEL_NAME" --output artifacts/residual_probe.json
       - name: Upload result
         uses: actions/upload-artifact@v4
         with:
