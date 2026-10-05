@@ -33,8 +33,14 @@ jobs:
         env:
           MODEL_NAME: ${{ inputs.model || 'gpt2' }}
         run: python -m interpretability.run_research --model "$MODEL_NAME" --output artifacts/residual_probe.json
-      - name: Upload result
+      - name: Run attention-head experiment
+        env:
+          MODEL_NAME: ${{ inputs.model || 'gpt2' }}
+        run: python -m interpretability.attention_heads --model "$MODEL_NAME" --output artifacts/attention_heads.json --layers 8 9 10 11
+      - name: Upload results
         uses: actions/upload-artifact@v4
         with:
-          name: residual-probe
-          path: artifacts/residual_probe.json
+          name: interpretability-results
+          path: |
+            artifacts/residual_probe.json
+            artifacts/attention_heads.json
