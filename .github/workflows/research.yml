@@ -41,7 +41,7 @@ jobs:
         env:
           MODEL_NAME: ${{ inputs.model || 'gpt2' }}
         run: python -m interpretability.nnsight_activation --model "$MODEL_NAME" --layer 10 --output artifacts/nnsight_activation.json
-      - name: Run causal head-ablation sweep
+      - name: Run causal head-ablation replication
         env:
           MODEL_NAME: ${{ inputs.model || 'gpt2' }}
         run: python -m interpretability.head_ablation --model "$MODEL_NAME" --candidates "10:6,9:9,8:4,10:0,10:7" --output artifacts/head_ablation.json
