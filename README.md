@@ -60,6 +60,37 @@ export AI_SENTINEL_MODEL=distilgpt2
 
 The model adapter is lazy-loaded so the MVP security harness works without downloading a model.
 
+## Interpretability research
+
+The research workflow runs four complementary experiments against GPT-2 by default:
+
+1. **Residual-stream comparison** — measures how clean vs. adversarial activations diverge across transformer layers.
+2. **Attention-head analysis** — ranks heads using descriptive attention changes; this does not establish causality.
+3. **NNsight activation analysis** — compares layer-10 activations with sequence-length-safe pooling; this is descriptive.
+4. **Causal attention-head ablation** — zeroes candidate heads at `blocks.{layer}.attn.hook_z` and measures whether the adversarial output distribution moves toward the paired clean distribution.
+
+The causal experiment now uses **five matched clean/adversarial prompt pairs** and reports both per-pair measurements and an aggregate ranking. A positive restoration fraction means the tested ablation moved the adversarial output distribution toward the clean distribution for that pair.
+
+### Reproduce the research locally
+
+```bash
+pip install -r requirements-model.txt
+pip install -r requirements-interpretability.txt
+
+python -m interpretability.run_research --model gpt2 --output artifacts/residual_probe.json
+python -m interpretability.attention_heads --model gpt2 --output artifacts/attention_heads.json --layers 8 9 10 11
+python -m interpretability.nnsight_activation --model gpt2 --layer 10 --output artifacts/nnsight_activation.json
+python -m interpretability.head_ablation --model gpt2 --output artifacts/head_ablation.json
+```
+
+Results from GitHub Actions are published as the `interpretability-results` workflow artifact.
+
+> **Scientific scope:** a positive causal effect on these prompt pairs is evidence for the tested intervention, not proof that a particular head is a universal jailbreak mechanism. Replication across prompts, models, and task types is required before making a broader claim.
+
+## CI security gates
+
+GitHub Actions runs the security regression suite on repository changes. The research workflow separately executes the interpretability experiments and preserves JSON results as downloadable artifacts.
+
 ## Roadmap
 
 1. Real Hugging Face/PyTorch model evaluation
