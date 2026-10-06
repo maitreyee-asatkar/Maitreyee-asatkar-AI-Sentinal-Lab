@@ -49,6 +49,8 @@ jobs:
         env:
           MODEL_NAME: ${{ inputs.model || 'gpt2' }}
         run: python -m interpretability.activation_steering --model "$MODEL_NAME" --layer 10 --output artifacts/activation_steering.json
+      - name: Build research dashboard
+        run: python -m interpretability.dashboard
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
@@ -59,3 +61,4 @@ jobs:
             artifacts/nnsight_activation.json
             artifacts/head_ablation.json
             artifacts/activation_steering.json
+            artifacts/research_dashboard.md
