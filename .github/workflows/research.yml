@@ -45,6 +45,10 @@ jobs:
         env:
           MODEL_NAME: ${{ inputs.model || 'gpt2' }}
         run: python -m interpretability.head_ablation --model "$MODEL_NAME" --candidates "10:6,9:9,8:4,10:0,10:7" --output artifacts/head_ablation.json
+      - name: Run activation-steering tradeoff experiment
+        env:
+          MODEL_NAME: ${{ inputs.model || 'gpt2' }}
+        run: python -m interpretability.activation_steering --model "$MODEL_NAME" --layer 10 --output artifacts/activation_steering.json
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
@@ -54,3 +58,4 @@ jobs:
             artifacts/attention_heads.json
             artifacts/nnsight_activation.json
             artifacts/head_ablation.json
+            artifacts/activation_steering.json
